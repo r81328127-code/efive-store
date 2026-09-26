@@ -64,7 +64,7 @@ function Furniture({item,selected,onSelect,onMove}) {
   const dragging=useRef(false);
   const offset=useRef(new THREE.Vector3());
   const plane=useMemo(()=>new THREE.Plane(new THREE.Vector3(0,1,0),0),[]);
-  const {camera}=useThree();
+  
 
   const pointerOnFloor=(ray)=>{
     const p=new THREE.Vector3();
@@ -119,7 +119,7 @@ function RoomScene({room,furniture,selectedId,setSelectedId,moveFurniture,rotate
     {furniture.map(item=><Furniture key={item.id} item={item} selected={item.id===selectedId}
       onSelect={setSelectedId} onMove={moveFurniture}/>)}
     <ContactShadows position={[0,0,0]} opacity={.28} scale={10} blur={2.5} far={7}/>
-    <OrbitControls makeDefault enableDamping dampingFactor={.08} minDistance={6} maxDistance={16} maxPolarAngle={Math.PI/2.08}/>
+    <OrbitControls makeDefault enableDamping dampingFactor={.08} minDistance={6} maxDistance={16} maxPolarAngle={Math.PI/2.08} />
   </Canvas>;
 }
 
@@ -173,7 +173,7 @@ function App(){
         <section><div className="eyebrow">HOME TYPE</div><div className="seg">{Object.keys(ROOM_TYPES).map(x=><button key={x} className={bhk===x?"active":""} onClick={()=>setBhk(x)}>{x}</button>)}</div></section>
         <section><div className="eyebrow">ROOMS</div><div className="rooms">{visibleRooms.map(x=><button key={x} className={room===x?"room-active":""} onClick={()=>setRoom(x)}><span>{x}</span><span>›</span></button>)}</div></section>
         <section><div className="eyebrow">FURNITURE</div><div className="chips">{categories.map(x=><button key={x} className={category===x?"chip-active":""} onClick={()=>setCategory(x)}>{x}</button>)}</div>
-          <div className="catalog">{shown.map(p=><button className="product" key={p.id} onClick={()=>add(p)}><div className={"thumb "+p.type}><ProductModel type={p.type}/></div><div><b>{p.name}</b><span>₹{p.price.toLocaleString("en-IN")}</span></div><strong>＋</strong></button>)}</div>
+          <div className="catalog">{shown.map(p=><button className="product" key={p.id} onClick={()=>add(p)}><div className={"thumb "+p.type}><div className="thumb-art">{p.type==="tv"?"TV":p.type==="sofa"?"SOFA":p.type==="bed"?"BED":p.type==="table"?"TABLE":"WARDROBE"}</div></div><div><b>{p.name}</b><span>₹{p.price.toLocaleString("en-IN")}</span></div><strong>＋</strong></button>)}</div>
         </section>
       </aside>
 
@@ -185,7 +185,7 @@ function App(){
 
       <aside className="inspector">
         <div className="inspector-head"><div className="eyebrow">SELECTED PRODUCT</div>{selected&&<button className="x" onClick={()=>setSelectedId(null)}>×</button>}</div>
-        {selected?<><div className="selected-card"><div className={"big-thumb "+selected.type}><ProductModel type={selected.type}/></div><div><h3>{selected.name}</h3><p>Placed in {room}</p><strong>₹{selected.price.toLocaleString("en-IN")}</strong></div></div>
+        {selected?<><div className="selected-card"><div className={"big-thumb "+selected.type}><div className="thumb-art">{selected.type==="tv"?"TV":selected.type==="sofa"?"SOFA":selected.type==="bed"?"BED":selected.type==="table"?"TABLE":"WARDROBE"}</div></div><div><h3>{selected.name}</h3><p>Placed in {room}</p><strong>₹{selected.price.toLocaleString("en-IN")}</strong></div></div>
           <div className="control-group"><label>POSITION</label><div className="control-row"><span>X</span><input type="number" value={selected.x.toFixed(2)} step=".05" onChange={e=>moveFurniture(selected.id,{x:Number(e.target.value),z:selected.z})}/><span>Z</span><input type="number" value={selected.z.toFixed(2)} step=".05" onChange={e=>moveFurniture(selected.id,{x:selected.x,z:Number(e.target.value)})}/></div></div>
           <div className="control-group"><label>ROTATION</label><div className="rotate-row"><button onClick={()=>rotate(-Math.PI/4)}>−45°</button><div>{Math.round(selected.rotation*180/Math.PI)}°</div><button onClick={()=>rotate(Math.PI/4)}>＋45°</button></div></div>
           <button className="danger" onClick={remove}>Remove from room</button></>
