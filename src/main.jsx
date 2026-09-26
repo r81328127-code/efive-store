@@ -1,7 +1,7 @@
 import React,{useEffect,useMemo,useRef,useState} from "react";
 import {createRoot} from "react-dom/client";
 import {Canvas,useThree,useFrame} from "@react-three/fiber";
-import {OrbitControls,Bounds,Outlines,RoundedBox,ContactShadows,Environment,Html,Grid,useCursor,useBounds} from "@react-three/drei";
+import {OrbitControls,Bounds,Outlines,RoundedBox,ContactShadows,Html,Grid,useCursor,useBounds} from "@react-three/drei";
 import * as THREE from "three";
 import "./style.css";
 
@@ -220,7 +220,7 @@ function RoomScene({room,furniture,selectedId,setSelectedId,moveFurniture,view,o
     onPointerMissed={()=>setSelectedId(null)}>
     <color attach="background" args={["#e9e4dc"]}/>
     <ambientLight intensity={1.35}/>
-    <hemisphereLight intensity={.8} groundColor="#b5aa99" color="#fff9ef"/>
+    <hemisphereLight intensity={1.0} groundColor="#a79d90" color="#fffaf1"/>\n    <spotLight position={[-4,6,3]} angle={.42} penumbra={.8} intensity={2.0} castShadow/>
     <directionalLight position={[4,8,5]} intensity={2.7} castShadow shadow-mapSize-width={2048} shadow-mapSize-height={2048}/>
     <Environment preset="studio"/>
     <mesh receiveShadow rotation={[-Math.PI/2,0,0]} position={[0,0,0]}>
@@ -231,7 +231,7 @@ function RoomScene({room,furniture,selectedId,setSelectedId,moveFurniture,view,o
     <Grid args={[9,7]} position={[0,.006,0]} cellSize={.5} cellThickness={.25} sectionSize={1} sectionThickness={.5} fadeDistance={10} fadeStrength={1.2} infiniteGrid={false} />
     <Html position={[-4.2,5.0,-3.4]} transform occlude><div className="scene-label">EFIVE • {room}</div></Html>
     <ContactShadows position={[0,0,0]} opacity={.28} scale={9} blur={2.4} far={7}/>
-    <Bounds fit clip observe margin={1.10} maxDuration={.6}>{content}<CameraDirector view={view} autoFitToken={room+"::"+furniture.length}/></Bounds>
+    <Bounds fit clip observe margin={1.10} maxDuration={.6}>{content}<CameraDirector view={view} autoFitToken={furniture.length?room+"::"+furniture.length:""}/></Bounds>
     <OrbitControls makeDefault enableDamping dampingFactor={.075} minDistance={4.2} maxDistance={15} maxPolarAngle={Math.PI/2.03} minPolarAngle={.25} />
     <CameraDirector view={view} autoFitToken={furniture.length}/>
   </Canvas>;
