@@ -1,7 +1,7 @@
 import React,{useEffect,useMemo,useRef,useState} from "react";
 import {createRoot} from "react-dom/client";
 import {Canvas,useThree} from "@react-three/fiber";
-import {OrbitControls,Bounds,Outlines,RoundedBox,ContactShadows,Environment,Html,Grid,useCursor,useLoader} from "@react-three/drei";
+import {OrbitControls,Bounds,Outlines,RoundedBox,ContactShadows,Environment,Html,Grid,useCursor,useLoader,useGLTF} from "@react-three/drei";
 import * as THREE from "three";
 import {MACRAME_WEBP_BASE64} from "./assets/macrameData.js";
 import "./style.css";
@@ -17,12 +17,14 @@ const ROOM_TYPES={
 const CATALOG=[
   {id:"tvunit",name:"Modular Display TV Console",category:"TV Units",price:34999,type:"tvunit"},
   {id:"television",name:"55-inch Smart TV",category:"TV Units",price:39999,type:"television"},
-  {id:"macrame",name:"Handwoven Macrame Sun & Rainbow Wall Decor",category:"Decor",price:1299,type:"macrame"},
+  {id:"macrame",name:"Handwoven Macrame Sun & Rainbow Wall Decor",category:"Decor",price:1299,type:"macrame"},\n  {id:"car",name:"Ferrari 458 Italia • 3D Demo",category:"Cars",price:0,type:"car"},
   {id:"sofa",name:"Luna 3-Seater Sofa",category:"Sofas",price:32999,type:"sofa"},
   {id:"bed",name:"Aster Queen Bed",category:"Beds",price:41999,type:"bed"},
   {id:"table",name:"Oak Dining Table",category:"Dining",price:28999,type:"table"},
   {id:"wardrobe",name:"Linea Wardrobe",category:"Storage",price:35999,type:"wardrobe"}
 ];
+
+const CAR_MODEL_URL="https://threejs.org/examples/models/gltf/ferrari.glb";
 
 const FRAME_FINISHES=[
   {id:"red",name:"Crimson",hex:"#8b1f1b"},
@@ -94,6 +96,33 @@ function Television({size=55}){
   </group>;
 }
 
+
+function CarModel(){
+  const {scene}=useGLTF(CAR_MODEL_URL);
+  const model=useMemo(()=>{
+    const clone=scene.clone(true);
+    clone.traverse(obj=>{
+      if(obj.isMesh){
+        obj.castShadow=true;
+        obj.receiveShadow=true;
+        if(obj.material){
+          if(obj.material.roughness!==undefined)obj.material.roughness=Math.min(obj.material.roughness,.28);
+          if(obj.material.metalness!==undefined)obj.material.metalness=Math.max(obj.material.metalness,.18);
+        }
+      }
+    });
+    const box=new THREE.Box3().setFromObject(clone);
+    const size=box.getSize(new THREE.Vector3());
+    const center=box.getCenter(new THREE.Vector3());
+    const scale=3.35/Math.max(size.x,size.y,size.z);
+    clone.scale.setScalar(scale);
+    clone.position.set(-center.x*scale,-box.min.y*scale,-center.z*scale);
+    return clone;
+  },[scene]);
+  return <group rotation={[0,Math.PI,0]} position={[0,.01,0]}>{model}</group>;
+}
+useGLTF.preload(CAR_MODEL_URL);
+
 function ImageProductModel(){
   const texture=useLoader(THREE.TextureLoader,"data:image/webp;base64,"+MACRAME_WEBP_BASE64);
   useEffect(()=>{
@@ -140,7 +169,7 @@ function ProductObject({item,selected,onSelect,onMove,onDragging}){
   const offset=useRef(new THREE.Vector3());
   const floorPlane=useMemo(()=>new THREE.Plane(new THREE.Vector3(0,1,0),0),[]);
   const wallPlane=useMemo(()=>new THREE.Plane(new THREE.Vector3(0,0,1),3.46),[]);
-  const wallMounted=item.type==="macrame";
+  const wallMounted=item.type==="macrame";\n  const isCar=item.type==="car";
   useCursor(hovered||selected,selected?"grab":"pointer");
 
   const rayToSurface=(ray)=>{
@@ -172,7 +201,7 @@ function ProductObject({item,selected,onSelect,onMove,onDragging}){
   };
   const up=(e)=>{drag.current=false;onDragging(false);e.stopPropagation();};
 
-  const content=item.type==="tvunit"?<TVUnitModel frameFinish={item.frameFinish||"red"}/>:item.type==="television"?<Television size={item.tvSize||55}/>:item.type==="macrame"?<ImageProductModel/>:<GenericModel type={item.type}/>;
+  const content=item.type==="tvunit"?<TVUnitModel frameFinish={item.frameFinish||"red"}/>:item.type==="television"?<Television size={item.tvSize||55}/>:item.type==="macrame"?<ImageProductModel/>:item.type==="car"?<CarModel/>:<GenericModel type={item.type}/>;
 
   return <group ref={group} position={[item.x,wallMounted?(item.y||2.65):0,wallMounted?-3.42:item.z]} rotation={[0,item.rotation||0,0]}>
     <group onPointerOver={e=>{e.stopPropagation();setHovered(true)}} onPointerOut={e=>{e.stopPropagation();setHovered(false)}}
